@@ -1,0 +1,97 @@
+#include <windows.h>
+#pragma code_page(65001)
+// Original fonts; all encoding modes are selectable in their main dialog.
+LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
+102 DIALOG 0, 0, 240, 170
+STYLE 0x80c800c0
+CAPTION "WMA Encoder Option"
+FONT 8, "MS Sans Serif"
+BEGIN
+    CONTROL "OK", 1, "Button", 0x50010001, 67, 149, 50, 14
+    CONTROL "Cancel", 2, "Button", 0x50010000, 122, 149, 50, 14
+    CONTROL "Hint: Windows Media Player/Encoder 9 or later is required.", -1, "Static", 0x50020000, 7, 118, 226, 22
+    CONTROL "Quality", -1, "Button", 0x50000007, 7, 7, 226, 104
+    CONTROL "CBR", 1001, "Button", 0x50020009, 16, 25, 109, 12
+    CONTROL "VBR (Bitrate, two passes)", 1002, "Button", 0x50000009, 16, 43, 109, 12
+    CONTROL "VBR (Quality)", 1003, "Button", 0x50000009, 16, 61, 109, 12
+    CONTROL "16-bit lossless", 1004, "Button", 0x50000009, 16, 79, 190, 12
+    CONTROL "", 1005, "ComboBox", 0x50210003, 128, 25, 60, 120
+    CONTROL "kbps", -1, "Static", 0x50020200, 192, 25, 25, 12
+    CONTROL "", 1006, "ComboBox", 0x50210003, 128, 43, 60, 120
+    CONTROL "kbps", -1, "Static", 0x50020200, 192, 43, 25, 12
+    CONTROL "", 1007, "ComboBox", 0x50210003, 128, 61, 60, 100
+    CONTROL "%", -1, "Static", 0x50020200, 192, 61, 25, 12
+    CONTROL "Lossless preserves the converted 16-bit samples.", -1, "Static", 0x50020000, 16, 96, 207, 10
+END
+
+
+LANGUAGE LANG_CHINESE, SUBLANG_CHINESE_SIMPLIFIED
+102 DIALOG 0, 0, 240, 170
+STYLE 0x80c800c0
+CAPTION "WMA 编码选项"
+FONT 9, "宋体"
+BEGIN
+    CONTROL "确定", 1, "Button", 0x50010001, 67, 149, 50, 14
+    CONTROL "取消", 2, "Button", 0x50010000, 122, 149, 50, 14
+    CONTROL "提示: 请确认您的电脑上已安装 Windows Media Player/Encoder 9或更高的版本", -1, "Static", 0x50020000, 7, 118, 226, 22
+    CONTROL "编码质量", -1, "Button", 0x50000007, 7, 7, 226, 104
+    CONTROL "恒定比特率(CBR)", 1001, "Button", 0x50020009, 16, 25, 109, 12
+    CONTROL "基于比特率的VBR（两遍）", 1002, "Button", 0x50000009, 16, 43, 109, 12
+    CONTROL "基于质量的VBR", 1003, "Button", 0x50000009, 16, 61, 109, 12
+    CONTROL "16 位无损编码", 1004, "Button", 0x50000009, 16, 79, 190, 12
+    CONTROL "", 1005, "ComboBox", 0x50210003, 128, 25, 60, 120
+    CONTROL "kbps", -1, "Static", 0x50020200, 192, 25, 25, 12
+    CONTROL "", 1006, "ComboBox", 0x50210003, 128, 43, 60, 120
+    CONTROL "kbps", -1, "Static", 0x50020200, 192, 43, 25, 12
+    CONTROL "", 1007, "ComboBox", 0x50210003, 128, 61, 60, 100
+    CONTROL "%", -1, "Static", 0x50020200, 192, 61, 25, 12
+    CONTROL "无损模式只保留转换后的 16 位精度。", -1, "Static", 0x50020000, 16, 96, 207, 10
+END
+
+
+LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
+1000 DIALOG 0, 0, 240, 153
+STYLE 0x80c800c0
+CAPTION "MP3 Encoder Option"
+FONT 8, "MS Sans Serif"
+BEGIN
+    CONTROL "OK", 1, "Button", 0x50010001, 67, 132, 50, 14
+    CONTROL "Cancel", 2, "Button", 0x50010000, 122, 132, 50, 14
+    CONTROL "Quality", -1, "Button", 0x50000007, 7, 7, 226, 88
+    CONTROL "Stereo", -1, "Button", 0x50000007, 7, 98, 226, 29
+    CONTROL "CBR", 1001, "Button", 0x50020009, 16, 20, 109, 12
+    CONTROL "ABR", 1002, "Button", 0x50000009, 16, 38, 109, 12
+    CONTROL "VBR (legacy presets)", 1003, "Button", 0x50000009, 16, 56, 109, 12
+    CONTROL "VBR (quality levels)", 1004, "Button", 0x50000009, 16, 74, 109, 12
+    CONTROL "", 1005, "ComboBox", 0x50210003, 128, 20, 60, 120
+    CONTROL "kbps", -1, "Static", 0x50020200, 192, 20, 25, 12
+    CONTROL "", 1006, "ComboBox", 0x50210003, 128, 38, 60, 120
+    CONTROL "kbps", -1, "Static", 0x50020200, 192, 38, 25, 12
+    CONTROL "", 1007, "ComboBox", 0x50210003, 128, 56, 96, 125
+    CONTROL "", 1008, "ComboBox", 0x50210003, 128, 74, 96, 150
+    CONTROL "Joint stereo", 1010, "Button", 0x50010003, 16, 110, 207, 10
+END
+
+
+LANGUAGE LANG_CHINESE, SUBLANG_CHINESE_SIMPLIFIED
+1000 DIALOG 0, 0, 240, 153
+STYLE 0x80c800c0
+CAPTION "MP3 编码选项"
+FONT 9, "宋体"
+BEGIN
+    CONTROL "确定", 1, "Button", 0x50010001, 67, 132, 50, 14
+    CONTROL "取消", 2, "Button", 0x50010000, 122, 132, 50, 14
+    CONTROL "编码质量", -1, "Button", 0x50000007, 7, 7, 226, 88
+    CONTROL "立体声", -1, "Button", 0x50000007, 7, 98, 226, 29
+    CONTROL "恒定码率(CBR)", 1001, "Button", 0x50020009, 16, 20, 109, 12
+    CONTROL "平均码率(ABR)", 1002, "Button", 0x50000009, 16, 38, 109, 12
+    CONTROL "VBR（原版预设）", 1003, "Button", 0x50000009, 16, 56, 109, 12
+    CONTROL "VBR（质量等级）", 1004, "Button", 0x50000009, 16, 74, 109, 12
+    CONTROL "", 1005, "ComboBox", 0x50210003, 128, 20, 60, 120
+    CONTROL "kbps", -1, "Static", 0x50020200, 192, 20, 25, 12
+    CONTROL "", 1006, "ComboBox", 0x50210003, 128, 38, 60, 120
+    CONTROL "kbps", -1, "Static", 0x50020200, 192, 38, 25, 12
+    CONTROL "", 1007, "ComboBox", 0x50210003, 128, 56, 96, 125
+    CONTROL "", 1008, "ComboBox", 0x50210003, 128, 74, 96, 150
+    CONTROL "对于双声道采用联合立体声编码", 1010, "Button", 0x50010003, 16, 110, 207, 10
+END

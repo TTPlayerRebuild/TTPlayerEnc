@@ -1,0 +1,29 @@
+#include <winver.h>
+201 RCDATA "@ENC_LAME_LICENSE_PATH@"
+202 RCDATA "@ENC_LAME_NOTICE_PATH@"
+1 VERSIONINFO
+FILEVERSION @ENC_FIXED_VERSION@
+PRODUCTVERSION @ENC_FIXED_VERSION@
+FILEFLAGSMASK 0x3fL
+FILEFLAGS 0
+FILEOS VOS_NT_WINDOWS32
+FILETYPE VFT_DLL
+BEGIN
+  BLOCK "StringFileInfo"
+  BEGIN
+    BLOCK "040904B0"
+    BEGIN
+      VALUE "CompanyName", "Sonic853\0"
+      VALUE "FileDescription", "TTPlayer MP3/WMA/mp3PRO encoder add-in\0"
+      VALUE "FileVersion", "@ENC_BUILD_VERSION@\0"
+      VALUE "InternalName", "ttp_enc\0"
+      VALUE "OriginalFilename", "ttp_enc.dll\0"
+      VALUE "ProductName", "TTPlayer Rebuild ENC\0"
+      VALUE "ProductVersion", "@ENC_BUILD_VERSION@\0"
+    END
+  END
+  BLOCK "VarFileInfo"
+  BEGIN
+    VALUE "Translation", 0x0409, 1200
+  END
+END

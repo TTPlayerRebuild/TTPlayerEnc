@@ -1,7 +1,7 @@
 #include "encoder.h"
 #include "lame_backend.h"
+#include "pcm.h"
 #include <shlwapi.h>
-#include <cmath>
 #include <ks.h>
 #include <ksmedia.h>
 
@@ -106,20 +106,6 @@ WAVEFORMATEX validate(const WAVEFORMATEX* input) {
     require(f.nBlockAlign==f.nChannels*(f.wBitsPerSample/8) && f.nAvgBytesPerSec==f.nSamplesPerSec*f.nBlockAlign,E_INVALIDARG);
     f.cbSize=0; return f;
 }
-short sample16(const BYTE* p, const WAVEFORMATEX& f) {
-    if (f.wFormatTag==WAVE_FORMAT_IEEE_FLOAT) {
-        double x{};
-        if (f.wBitsPerSample==64) std::memcpy(&x,p,8);
-        else { float v{}; std::memcpy(&v,p,4); x=v; }
-        if (!std::isfinite(x)) x=0;
-        x=std::clamp(x,-1.0,32767.0/32768.0);
-        return short(std::lround(x*32768.0));
-    }
-    if (f.wBitsPerSample==8) return short((int(*p)-128)*256);
-    if (f.wBitsPerSample==16) { short v{}; std::memcpy(&v,p,2); return v; }
-    if (f.wBitsPerSample==24) return short(WORD(p[1])|(WORD(p[2])<<8));
-    return short(WORD(p[2])|(WORD(p[3])<<8));
-}
 class Instance final : public StreamEncoder, public Metadata {
     LONG refs_{1};
     Kind kind_;
@@ -134,6 +120,8 @@ class Instance final : public StreamEncoder, public Metadata {
     std::unique_ptr<ProSession> pro_;
     std::uint64_t mp3_start_{};
     Options options_;
+    std::vector<short> pcm_;
+    Bytes encoded_;
   public:
     explicit Instance(Kind kind) : kind_(kind) {}
     ~Instance() {
@@ -177,7 +165,11 @@ class Instance final : public StreamEncoder, public Metadata {
         if (kind_==Kind::Mp3 && state_==State::Active) return S_OK;
         HRESULT hr=protect([&]() -> HRESULT {
             require(state_==State::Open,E_UNEXPECTED);
+            // Bounded per-session scratch buffers, not allocations/zero fills
+            // for every decoder packet. LAME never receives caller-owned PCM.
+            pcm_.resize(4096*format_.nChannels);
             if (kind_==Kind::Mp3) {
+                encoded_.resize(20000);
                 lame_backend_=&lame_backend(options_.lame_version);
                 lame_=lame_backend_->open(format_,options_);
                 seek(stream_.p,0); ULARGE_INTEGER zero{}; check(stream_->SetSize(zero));
@@ -199,7 +191,7 @@ class Instance final : public StreamEncoder, public Metadata {
         state_=State::Finished;
         HRESULT hr=protect([&]() -> HRESULT {
             if (kind_==Kind::Mp3 && lame_) {
-                Bytes out(16384);
+                auto& out=encoded_;
                 int n=lame_backend_->flush(lame_,out.data(),int(out.size())); require(n>=0,E_FAIL);
                 if (!failed && n) write_exact(stream_.p,out.data(),DWORD(n));
                 if (!failed) {
@@ -240,20 +232,17 @@ class Instance final : public StreamEncoder, public Metadata {
             require(state_==State::Active,E_UNEXPECTED); require(buffer!=nullptr,E_POINTER);
             BYTE* source{}; DWORD bytes{}; check(buffer->Data(&source,&bytes));
             require(!bytes || source,E_POINTER); require(bytes%format_.nBlockAlign==0,E_INVALIDARG);
-            DWORD sample_bytes=format_.wBitsPerSample/8;
-            std::vector<short> pcm; Bytes encoded(20000);
             while (bytes) {
                 DWORD frames=std::min<DWORD>(bytes/format_.nBlockAlign,4096);
                 DWORD count=frames*format_.nChannels;
-                pcm.resize(count);
-                for (DWORD i=0;i<count;++i) pcm[i]=sample16(source+i*sample_bytes,format_);
+                convert_pcm16(source,pcm_.data(),count,format_);
                 if (kind_==Kind::Mp3) {
-                    int n=lame_backend_->encode(lame_,pcm.data(),int(frames),format_.nChannels==2,encoded.data(),int(encoded.size()));
+                    int n=lame_backend_->encode(lame_,pcm_.data(),int(frames),format_.nChannels==2,encoded_.data(),int(encoded_.size()));
                     require(n>=0,E_FAIL);
-                    if (n) write_exact(stream_.p,encoded.data(),DWORD(n));
+                    if (n) write_exact(stream_.p,encoded_.data(),DWORD(n));
                     if (written) *written+=DWORD(n);
-                } else if (wma_) wma_->write(pcm.data(),frames);
-                else pro_->write(pcm.data(),count*2);
+                } else if (wma_) wma_->write(pcm_.data(),frames);
+                else pro_->write(pcm_.data(),count*2);
                 DWORD consumed=frames*format_.nBlockAlign;
                 source+=consumed; bytes-=consumed;
             }

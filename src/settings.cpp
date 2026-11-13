@@ -94,6 +94,7 @@ INT_PTR CALLBACK options_proc(HWND window,UINT message,WPARAM wp,LPARAM lp) {
         HRESULT hr=protect([&]() -> HRESULT {
             if(state->kind==Kind::Mp3) {
                 auto versions=GetDlgItem(window,1012);
+                add_choice(versions,int(LameVersion::V3931),L"3.93.1",int(state->options.lame_version));
                 add_choice(versions,int(LameVersion::V3101),L"3.101",int(state->options.lame_version));
                 add_choice(versions,int(LameVersion::V40),L"4.0",int(state->options.lame_version));
                 add_choice(versions,int(LameVersion::V41Beta1),L"4.1beta1",int(state->options.lame_version));
@@ -172,7 +173,9 @@ Options load_options() {
     } else if (o.mp3_value < 8 || o.mp3_value > 320) o.mp3_value = 192;
     o.joint = number(L"Stereo", L"Joint", 1, path) != 0;
     o.lame_version = static_cast<LameVersion>(number(L"LAME", L"Version", int(LameVersion::V40), path));
-    if (o.lame_version != LameVersion::V3101 && o.lame_version != LameVersion::V40 &&
+    // Upgrade the historical 3.93 selection without silently falling back to 4.0.
+    if (int(o.lame_version) == 393) o.lame_version = LameVersion::V3931;
+    if (o.lame_version != LameVersion::V3931 && o.lame_version != LameVersion::V3101 && o.lame_version != LameVersion::V40 &&
         o.lame_version != LameVersion::V41Beta1) o.lame_version = LameVersion::V40;
     o.wma_mode = number(L"WMA", L"VBR", 2, path);
     if (o.wma_mode < 0 || o.wma_mode > 3) o.wma_mode = 2;

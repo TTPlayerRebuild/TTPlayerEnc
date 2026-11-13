@@ -9,13 +9,15 @@ include(cmake/legacy_windows.cmake)
 include(cmake/size_release.cmake)
 include(cmake/lame.cmake)
 include(cmake/version.cmake)
-add_library(ttp_enc SHARED src/plugin.cpp src/encoder.cpp src/lame.cpp src/settings.cpp src/mp3pro.cpp
+add_library(ttp_enc SHARED src/plugin.cpp src/encoder.cpp src/pcm.cpp src/lame.cpp src/settings.cpp src/mp3pro.cpp
   src/wma.cpp src/options.rc src/ttp_enc.def "${CMAKE_CURRENT_BINARY_DIR}/generated/version.rc")
 add_dependencies(ttp_enc ttp_enc_version)
 target_include_directories(ttp_enc PUBLIC include PRIVATE src)
 target_compile_definitions(ttp_enc PRIVATE UNICODE _UNICODE NOMINMAX WIN32_LEAN_AND_MEAN
   _WIN32_WINNT=0x0501 _CRT_SECURE_NO_WARNINGS)
 target_compile_options(ttp_enc PRIVATE /W4 /permissive- /EHsc /GR- /Os /Gy /Gw /GF /utf-8 /fp:precise /arch:SSE2)
+# Keep UI/adapter code size-first; the PCM conversion loop is an audio hot path.
+set_source_files_properties(src/pcm.cpp PROPERTIES COMPILE_OPTIONS "/O2;/Ob2;/Ot")
 target_link_libraries(ttp_enc PRIVATE ttp_lame ole32 uuid shlwapi shell32 user32 advapi32 wmcodecdspuuid)
 target_link_options(ttp_enc PRIVATE /OPT:REF /OPT:ICF /INCREMENTAL:NO /DEBUG:NONE)
 set_target_properties(ttp_enc PROPERTIES PREFIX "" OUTPUT_NAME "ttp_enc")

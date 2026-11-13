@@ -5,7 +5,7 @@
 namespace ttp::enc {
 enum class Kind { Mp3, Wma, Pro };
 // Stable values stored in ttp_enc.ini, independent of the dropdown order.
-enum class LameVersion { V3101 = 3101, V40 = 4000, V41Beta1 = 4101 };
+enum class LameVersion { V3931 = 3931, V3101 = 3101, V40 = 4000, V41Beta1 = 4101 };
 using Tags = std::vector<std::pair<std::string, std::wstring>>;
 struct Options {
     int mp3_mode{0}; // original Quality/Mode: CBR, ABR, preset

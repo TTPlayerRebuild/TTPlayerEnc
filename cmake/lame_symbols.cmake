@@ -1,5 +1,5 @@
-# External libmp3lame C symbols from the pinned 3.101, 4.0 and 4.1beta1
-# encoder-only MSVC builds (including 4.1's vector routines). Prefix both API
+# External libmp3lame C symbols from the pinned 3.93.1, 3.101, 4.0 and 4.1beta1
+# encoder-only MSVC builds (including all versions' vector routines). Prefix both API
 # and internal functions/tables: renaming only lame_* mixes incompatible state.
 # CRT functions and compiler-generated COMDATs must remain shared/unmodified.
 set(TTP_LAME_SYMBOLS
@@ -84,4 +84,17 @@ set(TTP_LAME_SYMBOLS
   scfsi_band set_frame_pinfo sfBandIndex slen1_tab slen2_tab t1l t32l t33l table23 table56
   vector_impl_available_list vector_impl_count vector_impl_display vector_impl_from_name
   vector_impl_init vector_impl_known vector_impl_name vector_impl_name_at vector_impl_supported
-  vector_implementation)
+  vector_implementation
+  # Additional public/internal symbols in the 3.93.1 encoder-only build.
+  ATHformula_GB ATHmdct CRC_update_lookup CheckVbrTag L3para_read L3psycho_anal
+  L3psycho_anal_ns NS_INTERP PutLameVBR ReportLameTagProgress VBR_iteration_loop
+  VBR_noise_shaping adj43asm adjust_ATH apply_abr_preset calc_scalefac compute_ath
+  compute_scalefacs_long compute_scalefacs_long_lsf compute_scalefacs_short count_bit_ESC
+  crc16_lookup fill_buffer_resample find_scalefac find_scalefac_ave find_scalefac_mq
+  freq2cbw gcd has_SIMD has_SIMD2 has_i387 header_word iipow20 iipow20_
+  init_mask_add_max_values iteration_loop ix_max lame_encode lame_encode_buffer_sample_t
+  lame_encode_frame lame_init_old lame_init_qval lame_set_exp_nspsytune2_int
+  lame_set_exp_nspsytune2_pointer lame_set_exp_nspsytune2_real penalties
+  psycho_loudness_approx putheader_bits quantize_xrpow quantize_xrpow_ISO s3_func
+  scale_bitcount_lsf scfsi_calc select_kth select_kth_int t10l t11l t12l t13l t15l
+  t16_5l t16l t24l t2l t3l t5l t6l t7l t8l t9l updateStats version_string)

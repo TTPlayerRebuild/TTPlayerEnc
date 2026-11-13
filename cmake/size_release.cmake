@@ -1,4 +1,4 @@
-# Release packages prioritize size, including statically linked dependencies.
+# Release defaults prioritize size; LAME and PCM hot paths override for speed.
 # Keep normal floating-point semantics, exception handling and legacy runtime.
 if(NOT MSVC)
   message(FATAL_ERROR "The size-first Release profile requires MSVC")

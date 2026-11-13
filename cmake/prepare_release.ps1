@@ -24,9 +24,10 @@ $notes = @"
 **更新记录**: $logUrl
 
 解压 ttp_enc-$version.zip，关闭播放器后，将 AddIn/ttp_enc.dll 放入安装目录。
-支持 MP3（内置 LAME 3.101 / 4.0 / 4.1beta1，默认 4.0）、WMA，以及可选的 mp3PRO 编码。在 MP3 编码选项的“LAME 版本”下拉框切换内核；4.1beta1 是可选测试版。mp3PRO 需用户另行提供 fhtpro.flt，放在同一 AddIn 目录；无需导入注册表或 flt.dat。
+支持 MP3（内置 LAME 3.93.1 / 3.101 / 4.0 / 4.1beta1，默认 4.0）、WMA，以及可选的 mp3PRO 编码。在 MP3 编码选项的“LAME 版本”下拉框切换内核；3.93 已升级为 3.93.1，旧配置值 393 兼容读取并在保存时改为 3931，4.1beta1 是可选测试版。3.93.1 的上游 MP3 标记仍为 LAME3.93，不靠标记辨别补丁版本。mp3PRO 需用户另行提供 fhtpro.flt，放在同一 AddIn 目录；无需导入注册表或 flt.dat。
 同一 x86 DLL 支持 XP SP3、Win7 和新系统，CPU 需要 SSE2；WMA 使用系统已有的 Windows Media 编码器。
-ZIP 只包含 AddIn/ttp_enc.dll 和 SHA256SUMS.txt。完整构建源码、依赖版本、重链接方法和许可证保留在下面的源代码仓库。
+LAME 内核采用速度优先编译，3.101／4.0 启用上游 SIMD，PCM 转换和会话缓冲已优化；默认仍为 4.0、算法 quality=2，不以降低质量换速度。
+ZIP 只包含 AddIn/ttp_enc.dll 和 SHA256SUMS.txt。四个 LAME 版本共用的 COPYING／LICENSE 仅保留在仓库，不嵌入 DLL 或加入 ZIP。完整构建源码、依赖版本、重链接方法和许可证保留在下面的源代码仓库；再分发者仍需满足 LGPL 要求。
 
 [源码、构建与重链接说明]($repoUrl/tree/$Commit)
 [LAME 各版本来源与校验值]($repoUrl/blob/$Commit/third_party/ORIGIN.md)

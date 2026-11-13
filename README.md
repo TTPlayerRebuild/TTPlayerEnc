@@ -6,15 +6,17 @@
 
 | 输出 | 实现 | 模式 |
 | --- | --- | --- |
-| MP3 | 静态链接 LAME **4.0** | CBR、ABR、V0–V9，以及原有八个预设 |
+| MP3 | 静态链接 LAME **3.101 / 4.0 / 4.1beta1**，默认 **4.0** | CBR、ABR、V0–V9，以及原有八个预设 |
 | WMA | 动态加载系统 `wmvcore.dll` | CBR、两遍比特率 VBR、质量 VBR、16 位无损 |
 | mp3PRO | 用户提供的 Cool Edit Pro `fhtpro.flt` | 保留滤镜的编码选项窗口，以本地文件保存配置 |
 
-截至 2026-10-06，LAME 官方公布的最新版本为 [4.0](https://lame.sourceforge.io/download.php)。构建固定下载此版本并校验 SHA-256，不跟随移动的 latest 链接。WMA 使用当前系统实际安装的编码器；mp3PRO 继续使用用户已有的专有滤镜，项目未重建或捆绑其算法内核。
+三个 LAME 版本均从官方固定归档下载并校验 SHA-256，不跟随移动的 latest 链接。4.0 为默认稳定版，4.1beta1 为用户可选的测试版；版本不会自动升级。WMA 使用当前系统实际安装的编码器；mp3PRO 继续使用用户已有的专有滤镜，项目未重建或捆绑其算法内核。
 
 ## 默认配置与扩展选项
 
-无已有配置时，MP3 默认为 **CBR 192 Kbps、联合立体声**；WMA 默认为 **质量 VBR 75**。保留原版字体、独立参数下拉框和原有参数顺序；MP3 的 VBR 分为“原版预设”（八个旧预设）和“质量等级”（V0–V9）两个独立单选项及下拉框，WMA 的 CBR、两遍比特率 VBR、质量 VBR 和 16 位无损在同一窗口选择。已移除独立“扩展…”窗口，已有有效配置保留。
+无已有配置时，MP3 默认为 **LAME 4.0、CBR 192 Kbps、联合立体声**；WMA 默认为 **质量 VBR 75**。编码器列表显示“MP3 编码器 (LAME)”。MP3 编码选项窗口顶部提供“LAME 版本”下拉框，可选择 **3.101、4.0、4.1beta1**；确定后保存，取消不修改配置。保留原版字体、独立参数下拉框和原有参数顺序；MP3 的 VBR 分为“原版预设”（八个旧预设）和“质量等级”（V0–V9）两个独立单选项及下拉框，WMA 的 CBR、两遍比特率 VBR、质量 VBR 和 16 位无损在同一窗口选择。已移除独立“扩展…”窗口，已有有效配置保留。
+
+LAME 版本保存在 `ttp_enc.ini` 的 `[LAME] Version`：`3101`＝3.101、`4000`＝4.0、`4101`＝4.1beta1。旧配置没有此键或值无效时使用 4.0，不改变原有码率、VBR 或立体声配置。每个编码实例在打开时固定其版本，后续更改选项不会切换正在编码的内核；不同版本可同时编码。
 
 MP3 保持指定输出采样率。WMA 只接受系统编码器实际支持的参数组合，不会自动替换成近似采样率或低比特率；不支持时需调整播放器转换参数。例如本次 XP/Win7 测试中，质量 75 支持 44.1 kHz，不支持 48 kHz。
 
@@ -24,7 +26,7 @@ MP3/mp3PRO 在播放器中优先使用宿主标准标签接口；独立调用且
 
 关闭播放器，将发行包中的 `AddIn/ttp_enc.dll` 放入播放器的 `AddIn` 目录，替换前自行保留原文件备份。
 
-- MP3 编码只需要本项目 DLL，不需要外置 `lame_enc.dll`。
+- 三个 LAME 版本均内置，MP3 编码只需要本项目 DLL，不需要外置 `lame_enc.dll`。
 - 使用 mp3PRO 时，把 **`fhtpro.flt` 放在同一个 AddIn 目录**。无需导入 `.reg`，无需 `flt.dat`，无需安装 Cool Edit Pro。`mp3PRO.dll` 是另一种解码插件，不能代替编码滤镜。
 - 缺少 `fhtpro.flt` 时只枚举 MP3 和 WMA；缺少系统 WMA 组件时 WMA 初始化返回错误，MP3 仍可使用。
 - 同一 x86 DLL 面向 XP SP3、Windows 7、Windows 10/11；CPU 需要 SSE2。VC-LTL 和 YY-Thunks 在构建时接入，不需要用户另装 VC++ 2012/现代 VC++ 运行库。WMA 需要系统已有 Windows Media 组件。
@@ -71,14 +73,16 @@ Actions 通过 `workflow_dispatch` 手动触发。勾选 **Release a Version (Gi
 
 ## 源码与重链接
 
-本项目自有适配代码采用 [MIT](LICENSE)；静态链接的 LAME 采用其 [LGPL 许可证](third_party/lame/COPYING)。完整适配源码与 CMake 脚本保留在仓库，构建时下载未修改的固定版 LAME 源码。可用以下方式替换 LAME 源码并重新生成完整 DLL：
+本项目自有适配代码采用 [MIT](LICENSE)；静态链接的 LAME 采用其 [LGPL 许可证](third_party/lame/COPYING)。完整适配源码与 CMake 脚本保留在仓库，构建时下载未修改的三个固定版 LAME 源码。各版本使用独立符号前缀和适配层，避免公共 API、内部函数和全局表冲突。可用以下方式替换 LAME 源码并重新生成完整 DLL：
 
 ```powershell
 ./build.ps1 -BuildDirectory build-relink -Package `
-  -CMakeArguments '-DFETCHCONTENT_SOURCE_DIR_TTPLAYER_LAME=C:/src/lame-4.0'
+  -CMakeArguments '-DFETCHCONTENT_SOURCE_DIR_TTPLAYER_LAME=C:/src/lame-4.0', `
+    '-DFETCHCONTENT_SOURCE_DIR_TTPLAYER_LAME_3101=C:/src/lame-3.101', `
+    '-DFETCHCONTENT_SOURCE_DIR_TTPLAYER_LAME_41BETA1=C:/src/lame-4.1beta1'
 ```
 
-该覆盖目录须包含 LAME 4.0 的完整源码；无需原版 `ttp_enc.dll`、反编译器或其它插件项目。Release 说明链接到该次构建提交及 LAME 来源、许可证和重链接说明。专有 `fhtpro.flt`、`flt.dat` 与原版二进制均不在仓库和发行包内。
+各覆盖目录须包含对应版本的完整源码，构建会核对主版本、次版本、发布类型和补丁号；也可只覆盖需要替换的版本，其余仍自动下载。无需原版 `ttp_enc.dll`、反编译器或其它插件项目。Release 说明链接到该次构建提交及 LAME 来源、许可证和重链接说明。专有 `fhtpro.flt`、`flt.dat` 与原版二进制均不在仓库和发行包内。
 
 ## 日期版本与 Release 体积优先构建
 
@@ -91,4 +95,4 @@ Release 的统一配置见 [cmake/size_release.cmake](cmake/size_release.cmake)�
 本项目经 `/Ob0`、`/Ob1`、`/Ob2` 对比，默认选择 `/Ob1`；
 可用 `-DTTP_SIZE_INLINE_LEVEL=0|1|2` 重新测量不同内联策略。
 保留正常浮点语义、异常处理及 VC-LTL／YY-Thunks 的 XP／Win7 兼容配置。
-Actions 不编译、不运行测试；本次新增的测试仅位于本地 `rebuild/tests/dll_size_versions`，不进入发行包。
+Actions 不编译、不运行测试；体积优先测试保留在本地 `rebuild/tests/dll_size_versions`，多版本编码和窗口回归位于 `rebuild/tests/enc_lame_versions_20261113`，均不进入发行包。

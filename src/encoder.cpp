@@ -1,5 +1,5 @@
 #include "encoder.h"
-#include <lame.h>
+#include "lame_backend.h"
 #include <shlwapi.h>
 #include <cmath>
 #include <ks.h>
@@ -128,7 +128,8 @@ class Instance final : public StreamEncoder, public Metadata {
     std::wstring path_;
     ComPtr<IStream> stream_;
     Tags tags_;
-    lame_t lame_{};
+    const LameBackend* lame_backend_{};
+    void* lame_{};
     std::unique_ptr<WmaSession> wma_;
     std::unique_ptr<ProSession> pro_;
     std::uint64_t mp3_start_{};
@@ -137,7 +138,7 @@ class Instance final : public StreamEncoder, public Metadata {
     explicit Instance(Kind kind) : kind_(kind) {}
     ~Instance() {
         if (state_==State::Active) Finish();
-        if (lame_) lame_close(lame_);
+        if (lame_) lame_backend_->close(lame_);
     }
     HRESULT STDMETHODCALLTYPE QueryInterface(REFIID iid,void** out) override {
         if (!out) return E_POINTER;
@@ -177,26 +178,8 @@ class Instance final : public StreamEncoder, public Metadata {
         HRESULT hr=protect([&]() -> HRESULT {
             require(state_==State::Open,E_UNEXPECTED);
             if (kind_==Kind::Mp3) {
-                lame_=lame_init(); require(lame_!=nullptr,E_OUTOFMEMORY);
-                require(lame_set_in_samplerate(lame_,int(format_.nSamplesPerSec))>=0);
-                require(lame_set_out_samplerate(lame_,int(format_.nSamplesPerSec))>=0);
-                require(lame_set_num_channels(lame_,format_.nChannels)>=0);
-                lame_set_mode(lame_,format_.nChannels==1?MONO:options_.joint?JOINT_STEREO:STEREO);
-                lame_set_quality(lame_,2);
-                lame_set_copyright(lame_,1);
-                lame_set_original(lame_,1);
-                lame_set_error_protection(lame_,1);
-                lame_set_extension(lame_,1);
-                if (options_.mp3_mode==0) { lame_set_VBR(lame_,vbr_off); lame_set_brate(lame_,options_.mp3_value); }
-                else if (options_.mp3_mode==1) { lame_set_VBR(lame_,vbr_abr); require(lame_set_preset(lame_,options_.mp3_value)>=0); }
-                else if (options_.mp3_value>=1100) { lame_set_VBR(lame_,vbr_default); lame_set_VBR_q(lame_,options_.mp3_value-1100); }
-                else {
-                    const int presets[]{R3MIX,STANDARD,EXTREME,INSANE,STANDARD_FAST,EXTREME_FAST,MEDIUM,MEDIUM_FAST};
-                    require(lame_set_preset(lame_,presets[options_.mp3_value-1000])>=0);
-                }
-                lame_set_write_id3tag_automatic(lame_,0);
-                lame_set_bWriteVbrTag(lame_,options_.mp3_mode!=0);
-                require(lame_init_params(lame_)>=0,E_INVALIDARG);
+                lame_backend_=&lame_backend(options_.lame_version);
+                lame_=lame_backend_->open(format_,options_);
                 seek(stream_.p,0); ULARGE_INTEGER zero{}; check(stream_->SetSize(zero));
                 mp3_start_=tell(stream_.p);
             } else if (kind_==Kind::Wma) {
@@ -217,13 +200,13 @@ class Instance final : public StreamEncoder, public Metadata {
         HRESULT hr=protect([&]() -> HRESULT {
             if (kind_==Kind::Mp3 && lame_) {
                 Bytes out(16384);
-                int n=lame_encode_flush(lame_,out.data(),int(out.size())); require(n>=0,E_FAIL);
+                int n=lame_backend_->flush(lame_,out.data(),int(out.size())); require(n>=0,E_FAIL);
                 if (!failed && n) write_exact(stream_.p,out.data(),DWORD(n));
                 if (!failed) {
-                    size_t size=lame_get_lametag_frame(lame_,nullptr,0);
+                    size_t size=lame_backend_->tag(lame_,nullptr,0);
                     if (size) {
                         require(size<=65536); out.resize(size);
-                        require(lame_get_lametag_frame(lame_,out.data(),out.size())==size);
+                        require(lame_backend_->tag(lame_,out.data(),out.size())==size);
                         auto end=tell(stream_.p); seek(stream_.p,mp3_start_); write_exact(stream_.p,out.data(),DWORD(size)); seek(stream_.p,end);
                     }
                     commit_stream(stream_.p);
@@ -248,7 +231,7 @@ class Instance final : public StreamEncoder, public Metadata {
             return failed?E_FAIL:S_OK;
         });
         pro_.reset(); wma_.reset();
-        if (lame_) { lame_close(lame_); lame_=nullptr; }
+        if (lame_) { lame_backend_->close(lame_); lame_=nullptr; }
         return hr;
     }
     HRESULT STDMETHODCALLTYPE Write(Buffer* buffer,DWORD* written) override {
@@ -265,8 +248,7 @@ class Instance final : public StreamEncoder, public Metadata {
                 pcm.resize(count);
                 for (DWORD i=0;i<count;++i) pcm[i]=sample16(source+i*sample_bytes,format_);
                 if (kind_==Kind::Mp3) {
-                    int n=format_.nChannels==2?lame_encode_buffer_interleaved(lame_,pcm.data(),int(frames),encoded.data(),int(encoded.size())):
-                        lame_encode_buffer(lame_,pcm.data(),pcm.data(),int(frames),encoded.data(),int(encoded.size()));
+                    int n=lame_backend_->encode(lame_,pcm.data(),int(frames),format_.nChannels==2,encoded.data(),int(encoded.size()));
                     require(n>=0,E_FAIL);
                     if (n) write_exact(stream_.p,encoded.data(),DWORD(n));
                     if (written) *written+=DWORD(n);

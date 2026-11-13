@@ -9,7 +9,7 @@ include(cmake/legacy_windows.cmake)
 include(cmake/size_release.cmake)
 include(cmake/lame.cmake)
 include(cmake/version.cmake)
-add_library(ttp_enc SHARED src/plugin.cpp src/encoder.cpp src/settings.cpp src/mp3pro.cpp
+add_library(ttp_enc SHARED src/plugin.cpp src/encoder.cpp src/lame.cpp src/settings.cpp src/mp3pro.cpp
   src/wma.cpp src/options.rc src/ttp_enc.def "${CMAKE_CURRENT_BINARY_DIR}/generated/version.rc")
 add_dependencies(ttp_enc ttp_enc_version)
 target_include_directories(ttp_enc PUBLIC include PRIVATE src)

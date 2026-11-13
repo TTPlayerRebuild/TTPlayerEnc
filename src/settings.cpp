@@ -65,6 +65,7 @@ Options selected_options(HWND window,const DialogState& state) {
     if(state.kind==Kind::Mp3) {
         o.mp3_value=choice(window,o.mp3_mode==2 && state.mp3_quality?1008:1005+o.mp3_mode);
         o.joint=IsDlgButtonChecked(window,1010)==BST_CHECKED;
+        o.lame_version=static_cast<LameVersion>(choice(window,1012));
     } else o.wma_value=o.wma_mode==3?0:choice(window,1005+o.wma_mode);
     return o;
 }
@@ -92,6 +93,10 @@ INT_PTR CALLBACK options_proc(HWND window,UINT message,WPARAM wp,LPARAM lp) {
         state=reinterpret_cast<DialogState*>(lp); SetWindowLongPtrW(window,DWLP_USER,lp);
         HRESULT hr=protect([&]() -> HRESULT {
             if(state->kind==Kind::Mp3) {
+                auto versions=GetDlgItem(window,1012);
+                add_choice(versions,int(LameVersion::V3101),L"3.101",int(state->options.lame_version));
+                add_choice(versions,int(LameVersion::V40),L"4.0",int(state->options.lame_version));
+                add_choice(versions,int(LameVersion::V41Beta1),L"4.1beta1",int(state->options.lame_version));
                 numbers(window,1005,mp3_cbr,state->options.mp3_value,6);
                 numbers(window,1006,mp3_abr,state->options.mp3_value,7);
                 const wchar_t* names[]{L"R3mix",L"Standard",L"Extreme",L"Insane",L"Fast Standard",L"Fast Extreme",L"Medium",L"FastMedium"};
@@ -126,7 +131,10 @@ INT_PTR CALLBACK options_proc(HWND window,UINT message,WPARAM wp,LPARAM lp) {
     if(id==IDOK) {
         auto hr=protect([&]() -> HRESULT {
             auto saved=load_options(); auto selected=selected_options(window,*state);
-            if(state->kind==Kind::Mp3) { saved.mp3_mode=selected.mp3_mode; saved.mp3_value=selected.mp3_value; saved.joint=selected.joint; }
+            if(state->kind==Kind::Mp3) {
+                saved.mp3_mode=selected.mp3_mode; saved.mp3_value=selected.mp3_value; saved.joint=selected.joint;
+                saved.lame_version=selected.lame_version;
+            }
             else { saved.wma_mode=selected.wma_mode; saved.wma_value=selected.wma_value; }
             save_options(saved); return S_OK;
         });
@@ -163,6 +171,9 @@ Options load_options() {
         if (!((o.mp3_value >= 1000 && o.mp3_value <= 1007) || (o.mp3_value >= 1100 && o.mp3_value <= 1109))) o.mp3_value = 1004;
     } else if (o.mp3_value < 8 || o.mp3_value > 320) o.mp3_value = 192;
     o.joint = number(L"Stereo", L"Joint", 1, path) != 0;
+    o.lame_version = static_cast<LameVersion>(number(L"LAME", L"Version", int(LameVersion::V40), path));
+    if (o.lame_version != LameVersion::V3101 && o.lame_version != LameVersion::V40 &&
+        o.lame_version != LameVersion::V41Beta1) o.lame_version = LameVersion::V40;
     o.wma_mode = number(L"WMA", L"VBR", 2, path);
     if (o.wma_mode < 0 || o.wma_mode > 3) o.wma_mode = 2;
     o.wma_value = number(L"WMA", L"Preset", o.wma_mode == 2 ? 75 : 96, path);
@@ -176,6 +187,7 @@ void save_options(const Options& o) {
     std::lock_guard<std::mutex> guard(options_mutex);
     auto path = settings_file(L"ttp_enc.ini");
     put(L"Quality", L"Mode", o.mp3_mode, path); put(L"Quality", L"Preset", o.mp3_value, path);
+    put(L"LAME", L"Version", int(o.lame_version), path);
     put(L"Stereo", L"Joint", o.joint, path); put(L"WMA", L"VBR", o.wma_mode, path);
     put(L"WMA", L"Preset", o.wma_value, path); put(L"mp3PRO", L"Options", int(o.pro_options), path);
 }

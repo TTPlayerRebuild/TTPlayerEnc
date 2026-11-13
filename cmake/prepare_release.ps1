@@ -24,12 +24,12 @@ $notes = @"
 **更新记录**: $logUrl
 
 解压 ttp_enc-$version.zip，关闭播放器后，将 AddIn/ttp_enc.dll 放入安装目录。
-支持 MP3（LAME 4.0）、WMA，以及可选的 mp3PRO 编码。mp3PRO 需用户另行提供 fhtpro.flt，放在同一 AddIn 目录；无需导入注册表或 flt.dat。
+支持 MP3（内置 LAME 3.101 / 4.0 / 4.1beta1，默认 4.0）、WMA，以及可选的 mp3PRO 编码。在 MP3 编码选项的“LAME 版本”下拉框切换内核；4.1beta1 是可选测试版。mp3PRO 需用户另行提供 fhtpro.flt，放在同一 AddIn 目录；无需导入注册表或 flt.dat。
 同一 x86 DLL 支持 XP SP3、Win7 和新系统，CPU 需要 SSE2；WMA 使用系统已有的 Windows Media 编码器。
 ZIP 只包含 AddIn/ttp_enc.dll 和 SHA256SUMS.txt。完整构建源码、依赖版本、重链接方法和许可证保留在下面的源代码仓库。
 
 [源码、构建与重链接说明]($repoUrl/tree/$Commit)
-[LAME 4.0 来源与校验值]($repoUrl/blob/$Commit/third_party/ORIGIN.md)
+[LAME 各版本来源与校验值]($repoUrl/blob/$Commit/third_party/ORIGIN.md)
 [LAME LGPL 许可证]($repoUrl/blob/$Commit/third_party/lame/COPYING)
 [LAME 使用说明]($repoUrl/blob/$Commit/third_party/lame/LICENSE)
 [VC-LTL 许可证]($repoUrl/blob/$Commit/docs/licenses/VC-LTL-LICENSE.txt)

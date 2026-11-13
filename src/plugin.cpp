@@ -1,5 +1,4 @@
 #include "encoder.h"
-#include <lame.h>
 
 namespace ttp::enc {
 HMODULE module{};
@@ -21,7 +20,7 @@ class Factory final : public EncoderCreator {
     HRESULT STDMETHODCALLTYPE Create(void** out) override { return make_encoder(kind_, out); }
     HRESULT STDMETHODCALLTYPE Name(wchar_t** out) override {
         return protect([&] {
-            if (kind_ == Kind::Mp3) return text(L"MP3 编码器 (LAME " + wide(get_lame_version()) + L")", out);
+            if (kind_ == Kind::Mp3) return text(L"MP3 编码器 (LAME)", out);
             return text(kind_ == Kind::Wma ? L"WMA 编码器 (Windows Media Audio)" :
                         L"mp3PRO 编码器 (Cool Edit Pro 2)", out);
         });
